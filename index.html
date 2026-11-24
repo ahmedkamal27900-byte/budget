@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>مدير الدخل والأقساط السحابي (2026 - 2027)</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --primary: #0f172a;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --income: #10b981;
+      --income-bg: #ecfdf5;
+      --expense: #f59e0b;
+      --expense-bg: #fffbeb;
+      --installment: #ef4444;
+      --installment-bg: #fef2f2;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 85px;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      color: white;
+      padding: 16px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .header-title h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.14);
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+
+    .sync-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+    .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+    .sync-dot.error { background: #ef4444; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .month-selector-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    select.month-select {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select.month-select option {
+      background: #0f172a;
+      color: white;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border-right: 4px solid var(--accent);
+    }
+
+    .kpi-card.income { border-right-color: var(--income); }
+    .kpi-card.expense { border-right-color: var(--expense); }
+    .kpi-card.installment { border-right-color: var(--installment); }
+    .kpi-card.net { border-right-color: var(--accent); }
+
+    .kpi-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .text-income { color: var(--income); }
+    .text-expense { color: var(--expense); }
+    .text-installment { color: var(--installment); }
+    .text-positive { color: var(--income); }
+    .text-negative { color: var(--installment); }
+
+    /* Section Card */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-outline { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: #e2e8f0; }
+    .btn-success { background: var(--income); color: white; }
+    .btn-danger { background: var(--installment-bg); color: var(--installment); }
+
+    /* Chart */
+    .chart-wrapper {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 190px;
+      min-width: 680px;
+      padding: 20px 8px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+
+    .bar-col:hover, .bar-col.active {
+      background: var(--accent-light);
+    }
+
+    .bars-group {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 135px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .bar {
+      width: 10px;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+      min-height: 2px;
+    }
+
+    .bar.b-inc { background: var(--income); }
+    .bar.b-exp { background: var(--expense); }
+    .bar.b-ins { background: var(--installment); }
+
+    .bar-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .bar-col.active .bar-label {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 10px;
+      font-size: 0.8rem;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* Item Rows */
+    .item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      gap: 10px;
+      background: #fafafa;
+    }
+
+    .item-info {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .item-name {
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .item-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .item-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input.amount-input {
+      width: 115px;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: left;
+      direction: ltr;
+      background: white;
+    }
+
+    input.amount-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .icon-btn {
+      background: white;
+      border: 1px solid var(--border);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+
+    .icon-btn:hover { background: var(--bg); }
+
+    /* Progress Bar */
+    .progress-wrap {
+      margin-top: 6px;
+      background: #e2e8f0;
+      height: 7px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 600px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* Bottom Navigation */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px;
+      z-index: 100;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      flex: 1;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .nav-icon { font-size: 1.2rem; }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: white;
+      width: 100%;
+      max-width: 520px;
+      max-height: 88vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      font-size: 0.9rem;
+    }
+
+    .months-grid-edit {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .month-edit-cell {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+
+    .month-edit-cell input {
+      width: 85px;
+      padding: 4px 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      direction: ltr;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    /* Setup Steps Box */
+    .step-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 0.86rem;
+    }
+
+    .step-box h4 {
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      direction: ltr;
+      text-align: left;
+      overflow-x: auto;
+      margin-top: 6px;
+      white-space: pre;
+    }
+
+    .toast {
+      position: fixed;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-size: 0.85rem;
+      z-index: 300;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<header>
+  <div class="header-top">
+    <div class="header-title">
+      <h1>مدير الدخل والأقساط السحابي</h1>
+      <div class="sync-badge" onclick="switchTab('sync')" title="إعدادات المزامنة السحابية">
+        <span id="syncDot" class="sync-dot"></span>
+        <span id="syncText">حفظ محلي (اضغط للربط السحابي)</span>
+      </div>
+    </div>
+    <div class="month-selector-wrap">
+      <select id="monthSelect" class="month-select" onchange="changeMonth(this.value)"></select>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- VIEW 1: DASHBOARD -->
+  <div id="view-dashboard" class="view active">
+    <div class="kpi-grid">
+      <div class="kpi-card income">
+        <div class="kpi-label">إجمالي دخل الشهر</div>
+        <div class="kpi-value text-income" id="kpiIncome">0</div>
+        <div class="kpi-sub" id="kpiYearIncome">الإجمالي (13 شهر): 0</div>
+      </div>
+      <div class="kpi-card expense">
+        <div class="kpi-label">مصاريف الشهر</div>
+        <div class="kpi-value text-expense" id="kpiExpense">0</div>
+        <div class="kpi-sub" id="kpiYearExpense">الإجمالي (13 شهر): 0</div>
+      </div>
+      <div class="kpi-card installment">
+        <div class="kpi-label">أقساط الشهر</div>
+        <div class="kpi-value text-installment" id="kpiInstallment">0</div>
+        <div class="kpi-sub" id="kpiYearInstallment">الإجمالي (13 شهر): 0</div>
+      </div>
+      <div class="kpi-card net">
+        <div class="kpi-label">صافي المتبقي للشهر</div>
+        <div class="kpi-value" id="kpiNet">0</div>
+        <div class="kpi-sub" id="kpiBurden">عبء الالتزامات: 0%</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📊 التدفقات المالية (ديسمبر 2026 - ديسمبر 2027)</div>
+        <button class="btn btn-outline" onclick="copyPrevMonth()">📋 نسخ دخل ومصاريف الشهر السابق</button>
+      </div>
+      <div class="chart-wrapper">
+        <div id="barChart" class="bar-chart"></div>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><span class="legend-dot" style="background:var(--income)"></span> الدخل</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--expense)"></span> المصاريف</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--installment)"></span> الأقساط</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📅 ملخص الـ 13 شهراً</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>الشهر</th>
+              <th>الدخل</th>
+              <th>المصاريف</th>
+              <th>الأقساط</th>
+              <th>صافي المتبقي</th>
+            </tr>
+          </thead>
+          <tbody id="summaryTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: MONTHLY ENTRY -->
+  <div id="view-entry" class="view">
+    <!-- Income Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title text-income">💰 أولاً: مصادر الدخل (<span class="active-month-name"></span>)</div>
+        <button class="btn btn-outline" onclick="openAddModal('income')">+ إضافة دخل</button>
+      </div>
+      <div id="incomeList"></div>
+    </div>
+
+    <!-- Expense Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title text-expense">🛒 ثانياً: المصاريف والنفقات (<span class="active-month-name"></span>)</div>
+        <button class="btn btn-outline" onclick="openAddModal('expense')">+ إضافة مصروف</button>
+      </div>
+      <div id="expenseList"></div>
+    </div>
+
+    <!-- Installment Section -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title text-installment">💳 ثالثاً: الأقساط والالتزامات (<span class="active-month-name"></span>)</div>
+        <button class="btn btn-outline" onclick="openAddModal('installment')">+ إضافة قسط</button>
+      </div>
+      <div id="installmentList"></div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: INSTALLMENTS TRACKER -->
+  <div id="view-installments" class="view">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📌 موقف سداد الأقساط حتى (<span class="active-month-name"></span>)</div>
+      </div>
+      <div id="installmentsProgressList"></div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: CLOUD SYNC & EXPORT -->
+  <div id="view-sync" class="view">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">☁️ الربط السحابي التلقائي بين الموبايل والكمبيوتر</div>
+      </div>
+
+      <div class="form-group">
+        <label>رابط قاعدة بيانات Firebase Realtime Database (URL)</label>
+        <input type="url" id="firebaseUrlInput" class="form-control" style="direction:ltr; text-align:left;" placeholder="https://your-project-default-rtdb.firebaseio.com" />
+      </div>
+
+      <div class="form-group">
+        <label>رمز الحماية السري (اختر أي كلمة سر خاصة بك لتأمين بياناتك)</label>
+        <input type="text" id="syncSecretInput" class="form-control" style="direction:ltr; text-align:left;" placeholder="مثال: my_secret_2026" />
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="saveCloudConfig()">🔗 حفظ وتفعيل المزامنة</button>
+        <button class="btn btn-success" onclick="forcePullCloud()">⬇️ سحب البيانات من السحابة</button>
+        <button class="btn btn-outline" onclick="forcePushCloud()">⬆️ رفع بياناتي الحالية للسحابة</button>
+      </div>
+
+      <div class="step-box">
+        <h4>خطوات تفعيل المزامنة المجانية في دقيقتين (مرة واحدة فقط):</h4>
+        <ol style="padding-right: 18px; line-height: 1.8;">
+          <li>ادخل بحساب جوجل على موقع <b>console.firebase.google.com</b> واضغط <b>Create a project</b> (أو Add project) واكتب أي اسم للمشروع.</li>
+          <li>من القائمة الجانبية اختر <b>Build</b> ثم <b>Realtime Database</b> واضغط <b>Create Database</b>.</li>
+          <li>اختر وضع <b>Start in test mode</b> ثم اضغط Enable.</li>
+          <li>انسخ الرابط الظاهر أعلى الجدول (ينتهي بـ <code>firebaseio.com</code>) والصقه في الخانة بالأعلى، واكتب نفس رمز الحماية على الموبايل والكمبيوتر.</li>
+          <li>لتشغيل البرنامج على الموبايل والكمبيوتر معاً: ارفع هذا الملف مجاناً على <b>app.netlify.com/drop</b> لتحصل على رابط إنترنت يفتح من أي جهاز فوراً!</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">💾 النسخ الاحتياطي وتصدير Excel</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-success" onclick="exportCSV()">📊 تصدير إلى Excel (CSV)</button>
+        <button class="btn btn-outline" onclick="exportJSON()">⬇️ تنزيل نسخة احتياطية (JSON)</button>
+        <label class="btn btn-outline" style="cursor:pointer;">
+          ⬆️ استعادة نسخة (JSON)
+          <input type="file" accept=".json" style="display:none;" onchange="importJSON(event)" />
+        </label>
+        <button class="btn btn-danger" onclick="resetDefaultData()">🔄 استعادة بيانات الملف الأصلي</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <span class="nav-icon">📊</span>
+    <span>الداشبورد</span>
+  </button>
+  <button class="nav-item" id="nav-entry" onclick="switchTab('entry')">
+    <span class="nav-icon">✍️</span>
+    <span>الجدول الشهري</span>
+  </button>
+  <button class="nav-item" id="nav-installments" onclick="switchTab('installments')">
+    <span class="nav-icon">💳</span>
+    <span>متابعة الأقساط</span>
+  </button>
+  <button class="nav-item" id="nav-sync" onclick="switchTab('sync')">
+    <span class="nav-icon">☁️</span>
+    <span>المزامنة والحفظ</span>
+  </button>
+</nav>
+
+<!-- Edit All Months Modal -->
+<div id="editModal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">تعديل البند</h3>
+      <button class="icon-btn" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>اسم البند</label>
+      <input type="text" id="editItemName" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label>النوع / ملاحظات</label>
+      <input type="text" id="editItemNote" class="form-control" />
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <button class="btn btn-outline" onclick="fillAllMonthsFromDec()">تعميم قيمة ديسمبر على كل الشهور</button>
+    </div>
+    <div id="editMonthsGrid" class="months-grid-edit"></div>
+    <div style="display:flex; justify-content:space-between; margin-top:16px;">
+      <button class="btn btn-danger" onclick="deleteCurrentItem()">🗑️ حذف البند</button>
+      <button class="btn btn-primary" onclick="saveItemModal()">💾 حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Item Modal -->
+<div id="addModal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="addModalTitle">إضافة بند جديد</h3>
+      <button class="icon-btn" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>اسم البند</label>
+      <input type="text" id="newItemName" class="form-control" placeholder="مثال: قسط سيارة / مكافأة / كهرباء" />
+    </div>
+    <div class="form-group">
+      <label>النوع / ملاحظات</label>
+      <input type="text" id="newItemNote" class="form-control" placeholder="مثال: تقسيط / دخل ثابت" />
+    </div>
+    <div class="form-group">
+      <label>القيمة الشهرية الافتراضية</label>
+      <input type="number" id="newItemDefaultVal" class="form-control" value="0" />
+    </div>
+    <div class="form-group">
+      <label>تطبيق القيمة على:</label>
+      <select id="newItemApplyScope" class="form-control">
+        <option value="current">الشهر المختار حالياً فقط</option>
+        <option value="from_current">من الشهر المختار وحتى ديسمبر 2027</option>
+        <option value="all">جميع الـ 13 شهراً</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="confirmAddItem()">+ إضافة وحفظ</button>
+  </div>
+</div>
+
+<script>
+  const MONTHS = [
+    "ديسمبر 2026", "يناير 2027", "فبراير 2027", "مارس 2027",
+    "أبريل 2027", "مايو 2027", "يونيو 2027", "يوليو 2027",
+    "أغسطس 2027", "سبتمبر 2027", "أكتوبر 2027", "نوفمبر 2027", "ديسمبر 2027"
+  ];
+
+  const DEFAULT_DATA = {
+    updatedAt: 1,
+    income: [
+      { id: "inc1", name: "المرتب الأساسي", note: "دخل ثابت", values: [6710,0,0,0,0,0,0,0,0,0,0,0,0] },
+      { id: "inc2", name: "حوافز / مكافآت / عمولات", note: "دخل متغير", values: [350,0,0,0,0,0,0,0,0,0,0,0,0] },
+      { id: "inc3", name: "دخل من جهات أخرى / عمل حر", note: "دخل إضافي", values: [9000,0,0,0,0,0,0,0,0,0,0,0,0] },
+      { id: "inc4", name: "مصادر دخل أخرى", note: "أخرى", values: [4650,0,0,0,0,0,0,0,0,0,0,0,0] }
+    ],
+    expense: [
+      { id: "exp1", name: "مصاريف معيشة وطعام", note: "مصروف أساسي", values: [0,0,0,0,0,0,0,0,0,0,0,0,0] },
+      { id: "exp2", name: "فواتير ومرافق (كهرباء، نت، موبايل)", note: "مصروف ثابت", values: [1000,0,0,0,0,0,0,0,0,0,0,0,0] },
+      { id: "exp3", name: "جمعيات", note: "مصروف ثابت", values: [2000,0,0,0,0,0,0,0,0,0,0,0,0] },
+      { id: "exp4", name: "مصاريف شخصية وأخرى", note: "أخرى", values: [2500,0,0,0,0,0,0,0,0,0,0,0,0] }
+    ],
+    installment: [
+      { id: "ins1", name: "بنك نكست", note: "بنك", values: [1746,1260,1260,1260,1260,1260,1260,924,924,924,924,536,0] },
+      { id: "ins2", name: "فوري", note: "تقسيط", values: [1861.96,1861.96,1747.75,1587.8,1290.58,1290.58,1166.67,1166.67,1166.67,1166.67,1166.67,0,0] },
+      { id: "ins3", name: "بريميوم", note: "تقسيط", values: [764.78,757.78,757.78,757.78,757.78,491.88,0,0,0,0,0,0,0] },
+      { id: "ins4", name: "ترو", note: "تقسيط", values: [1100,1100,1100,1100,1100,1100,1100,1100,350,0,0,0,0] },
+      { id: "ins5", name: "كليفر", note: "تقسيط", values: [407.49,407.49,407.49,407.49,407.49,0,0,0,0,0,0,0,0] },
+      { id: "ins6", name: "فاليو", note: "تقسيط", values: [5425,5425,3579,3579,3579,2663,2663,1267,1267,1267,1267,1267,1267] }
+    ]
+  };
+
+  let appData = JSON.parse(localStorage.getItem("finance_cloud_data_v1")) || JSON.parse(JSON.stringify(DEFAULT_DATA));
+  let selectedMonthIdx = 0;
+  let editingTarget = null;
+  let addingCategory = "installment";
+  let syncTimer = null;
+
+  // Cloud Config
+  let cloudConfig = JSON.parse(localStorage.getItem("finance_cloud_cfg_v1")) || { url: "", secret: "default_user" };
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.display = "none"; }, 2800);
+  }
+
+  function formatMoney(num) {
+    return Number(num || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function init() {
+    const sel = document.getElementById("monthSelect");
+    sel.innerHTML = MONTHS.map((m, i) => `<option value="${i}">${m}</option>`).join("");
+    sel.value = selectedMonthIdx;
+
+    document.getElementById("firebaseUrlInput").value = cloudConfig.url || "";
+    document.getElementById("syncSecretInput").value = cloudConfig.secret || "";
+
+    renderAll();
+
+    if (cloudConfig.url) {
+      pullFromCloud(true);
+      setInterval(() => pullFromCloud(true), 15000); // Auto-check every 15s
+    } else {
+      updateSyncStatus("local", "حفظ محلي (اضغط للربط السحابي)");
+    }
+  }
+
+  function updateSyncStatus(state, text) {
+    const dot = document.getElementById("syncDot");
+    const label = document.getElementById("syncText");
+    dot.className = "sync-dot " + state;
+    label.textContent = text;
+  }
+
+  function saveData(skipCloud = false) {
+    appData.updatedAt = Date.now();
+    localStorage.setItem("finance_cloud_data_v1", JSON.stringify(appData));
+    renderAll();
+
+    if (!skipCloud && cloudConfig.url) {
+      updateSyncStatus("syncing", "جاري المزامنة...");
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => pushToCloud(), 800);
+    }
+  }
+
+  function getCloudEndpoint() {
+    if (!cloudConfig.url) return null;
+    let base = cloudConfig.url.trim().replace(/\/+$/, "");
+    let key = (cloudConfig.secret || "default").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+    return `${base}/users/${key}.json`;
+  }
+
+  async function pushToCloud() {
+    const endpoint = getCloudEndpoint();
+    if (!endpoint) return;
+    try {
+      updateSyncStatus("syncing", "جاري الرفع للسحابة...");
+      const res = await fetch(endpoint, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(appData)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const timeStr = new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+      updateSyncStatus("online", `متصل ومتزامن (${timeStr})`);
+    } catch (err) {
+      updateSyncStatus("error", "تعذر الاتصال بالسحابة - محفوظ محلياً");
+    }
+  }
+
+  async function pullFromCloud(silent = false) {
+    const endpoint = getCloudEndpoint();
+    if (!endpoint) return;
+    try {
+      if (!silent) updateSyncStatus("syncing", "جاري التحديث من السحابة...");
+      const res = await fetch(endpoint);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const remoteData = await res.json();
+      if (remoteData && remoteData.income && remoteData.installment) {
+        if (!silent || (remoteData.updatedAt && remoteData.updatedAt > (appData.updatedAt || 0))) {
+          appData = remoteData;
+          localStorage.setItem("finance_cloud_data_v1", JSON.stringify(appData));
+          renderAll();
+          if (!silent) showToast("تم تحديث البيانات من السحابة بنجاح!");
+        }
+      } else if (!silent) {
+        await pushToCloud();
+        showToast("تم رفع بياناتك الحالية للسحابة لأول مرة!");
+      }
+      const timeStr = new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+      updateSyncStatus("online", `متصل ومتزامن (${timeStr})`);
+    } catch (err) {
+      updateSyncStatus("error", "خطأ في رابط السحابة أو الاتصال");
+      if (!silent) showToast("تأكد من صحة رابط Firebase وإعدادات Test Mode");
+    }
+  }
+
+  function saveCloudConfig() {
+    const url = document.getElementById("firebaseUrlInput").value.trim();
+    const secret = document.getElementById("syncSecretInput").value.trim() || "default_user";
+    cloudConfig = { url, secret };
+    localStorage.setItem("finance_cloud_cfg_v1", JSON.stringify(cloudConfig));
+    if (url) {
+      showToast("تم حفظ الإعدادات، جاري الاتصال...");
+      pullFromCloud(false);
+    } else {
+      updateSyncStatus("local", "حفظ محلي (اضغط للربط السحابي)");
+      showToast("تم إيقاف المزامنة السحابية والعودة للحفظ المحلي");
+    }
+  }
+
+  function forcePullCloud() {
+    if (!cloudConfig.url) return showToast("أدخل رابط Firebase أولاً");
+    pullFromCloud(false);
+  }
+
+  function forcePushCloud() {
+    if (!cloudConfig.url) return showToast("أدخل رابط Firebase أولاً");
+    pushToCloud().then(() => showToast("تم رفع جميع بياناتك للسحابة!"));
+  }
+
+  function changeMonth(idx) {
+    selectedMonthIdx = parseInt(idx, 10);
+    document.getElementById("monthSelect").value = selectedMonthIdx;
+    renderAll();
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    document.getElementById("view-" + tabName).classList.add("active");
+    document.getElementById("nav-" + tabName).classList.add("active");
+  }
+
+  function getTotals() {
+    const monthlyIncome = Array(13).fill(0);
+    const monthlyExpense = Array(13).fill(0);
+    const monthlyInstallment = Array(13).fill(0);
+
+    appData.income.forEach(item => item.values.forEach((v, i) => monthlyIncome[i] += Number(v || 0)));
+    appData.expense.forEach(item => item.values.forEach((v, i) => monthlyExpense[i] += Number(v || 0)));
+    appData.installment.forEach(item => item.values.forEach((v, i) => monthlyInstallment[i] += Number(v || 0)));
+
+    const monthlyNet = MONTHS.map((_, i) => monthlyIncome[i] - monthlyExpense[i] - monthlyInstallment[i]);
+
+    const sumArr = arr => arr.reduce((a, b) => a + b, 0);
+    return {
+      monthlyIncome,
+      monthlyExpense,
+      monthlyInstallment,
+      monthlyNet,
+      totalIncome: sumArr(monthlyIncome),
+      totalExpense: sumArr(monthlyExpense),
+      totalInstallment: sumArr(monthlyInstallment),
+      totalNet: sumArr(monthlyNet)
+    };
+  }
+
+  function renderAll() {
+    document.querySelectorAll(".active-month-name").forEach(el => el.textContent = MONTHS[selectedMonthIdx]);
+    const totals = getTotals();
+
+    // KPIs
+    const curInc = totals.monthlyIncome[selectedMonthIdx];
+    const curExp = totals.monthlyExpense[selectedMonthIdx];
+    const curIns = totals.monthlyInstallment[selectedMonthIdx];
+    const curNet = totals.monthlyNet[selectedMonthIdx];
+
+    document.getElementById("kpiIncome").textContent = formatMoney(curInc);
+    document.getElementById("kpiYearIncome").textContent = `الإجمالي (13 شهر): ${formatMoney(totals.totalIncome)}`;
+
+    document.getElementById("kpiExpense").textContent = formatMoney(curExp);
+    document.getElementById("kpiYearExpense").textContent = `الإجمالي (13 شهر): ${formatMoney(totals.totalExpense)}`;
+
+    document.getElementById("kpiInstallment").textContent = formatMoney(curIns);
+    document.getElementById("kpiYearInstallment").textContent = `الإجمالي (13 شهر): ${formatMoney(totals.totalInstallment)}`;
+
+    const netEl = document.getElementById("kpiNet");
+    netEl.textContent = formatMoney(curNet);
+    netEl.className = "kpi-value " + (curNet >= 0 ? "text-positive" : "text-negative");
+
+    const burden = curInc > 0 ? Math.round(((curExp + curIns) / curInc) * 100) : 0;
+    document.getElementById("kpiBurden").textContent = `عبء الأقساط والمصاريف: ${burden}%`;
+
+    // Chart
+    const maxVal = Math.max(1, ...totals.monthlyIncome, ...totals.monthlyExpense, ...totals.monthlyInstallment);
+    const chartEl = document.getElementById("barChart");
+    chartEl.innerHTML = MONTHS.map((m, i) => {
+      const hInc = Math.round((totals.monthlyIncome[i] / maxVal) * 130);
+      const hExp = Math.round((totals.monthlyExpense[i] / maxVal) * 130);
+      const hIns = Math.round((totals.monthlyInstallment[i] / maxVal) * 130);
+      const shortName = m.replace("202", "'2");
+      return `
+        <div class="bar-col ${i === selectedMonthIdx ? 'active' : ''}" onclick="changeMonth(${i})">
+          <div class="bars-group">
+            <div class="bar b-inc" style="height:${hInc}px" title="الدخل: ${formatMoney(totals.monthlyIncome[i])}"></div>
+            <div class="bar b-exp" style="height:${hExp}px" title="المصاريف: ${formatMoney(totals.monthlyExpense[i])}"></div>
+            <div class="bar b-ins" style="height:${hIns}px" title="الأقساط: ${formatMoney(totals.monthlyInstallment[i])}"></div>
+          </div>
+          <div class="bar-label">${shortName}</div>
+        </div>
+      `;
+    }).join("");
+
+    // Summary Table
+    document.getElementById("summaryTableBody").innerHTML = MONTHS.map((m, i) => {
+      const net = totals.monthlyNet[i];
+      return `
+        <tr style="${i === selectedMonthIdx ? 'background:#eff6ff; font-weight:700;' : ''}" onclick="changeMonth(${i})">
+          <td>${m}</td>
+          <td class="text-income">${formatMoney(totals.monthlyIncome[i])}</td>
+          <td class="text-expense">${formatMoney(totals.monthlyExpense[i])}</td>
+          <td class="text-installment">${formatMoney(totals.monthlyInstallment[i])}</td>
+          <td class="${net >= 0 ? 'text-positive' : 'text-negative'}">${formatMoney(net)}</td>
+        </tr>
+      `;
+    }).join("");
+
+    // Render Entry Lists
+    renderCategoryList("income", "incomeList");
+    renderCategoryList("expense", "expenseList");
+    renderCategoryList("installment", "installmentList");
+
+    // Render Installments Progress
+    renderInstallmentsTracker();
+  }
+
+  function renderCategoryList(cat, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = appData[cat].map((item, idx) => {
+      const val = item.values[selectedMonthIdx] || 0;
+      const totalItem = item.values.reduce((a, b) => a + Number(b || 0), 0);
+      return `
+        <div class="item-row">
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-note">${item.note || ""} • إجمالي الفترة: ${formatMoney(totalItem)}</div>
+          </div>
+          <div class="item-controls">
+            <input type="number" step="0.01" class="amount-input" value="${val}"
+              onchange="updateValue('${cat}', ${idx}, this.value)" />
+            <button class="icon-btn" title="تعديل كل الشهور" onclick="openEditModal('${cat}', ${idx})">⚙️</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function updateValue(cat, idx, newVal) {
+    appData[cat][idx].values[selectedMonthIdx] = parseFloat(newVal) || 0;
+    saveData();
+  }
+
+  function copyPrevMonth() {
+    if (selectedMonthIdx === 0) {
+      return showToast("أنت بالفعل في الشهر الأول (ديسمبر 2026)");
+    }
+    const prev = selectedMonthIdx - 1;
+    appData.income.forEach(item => item.values[selectedMonthIdx] = item.values[prev]);
+    appData.expense.forEach(item => item.values[selectedMonthIdx] = item.values[prev]);
+    saveData();
+    showToast(`تم نسخ الدخل والمصاريف من ${MONTHS[prev]}`);
+  }
+
+  function renderInstallmentsTracker() {
+    const container = document.getElementById("installmentsProgressList");
+    container.innerHTML = appData.installment.map(item => {
+      const total = item.values.reduce((a, b) => a + Number(b || 0), 0);
+      const paid = item.values.slice(0, selectedMonthIdx + 1).reduce((a, b) => a + Number(b || 0), 0);
+      const remaining = Math.max(0, total - paid);
+      const pct = total > 0 ? Math.round((paid / total) * 100) : 100;
+      return `
+        <div class="item-row" style="flex-direction:column; align-items:stretch;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span class="item-name">${item.name}</span>
+              <span class="item-note"> (${item.note || "قسط"})</span>
+            </div>
+            <div style="font-weight:800; color:var(--accent);">${pct}% مسدد</div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-fill" style="width:${pct}%"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--muted); margin-top:4px;">
+            <span>الإجمالي: <b>${formatMoney(total)}</b></span>
+            <span class="text-income">المدفوع: <b>${formatMoney(paid)}</b></span>
+            <span class="text-installment">المتبقي: <b>${formatMoney(remaining)}</b></span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Modals
+  function openEditModal(cat, idx) {
+    editingTarget = { cat, idx };
+    const item = appData[cat][idx];
+    document.getElementById("modalTitle").textContent = `تعديل: ${item.name}`;
+    document.getElementById("editItemName").value = item.name;
+    document.getElementById("editItemNote").value = item.note || "";
+
+    const grid = document.getElementById("editMonthsGrid");
+    grid.innerHTML = MONTHS.map((m, i) => `
+      <div class="month-edit-cell">
+        <span>${m}</span>
+        <input type="number" step="0.01" id="mEdit_${i}" value="${item.values[i] || 0}" />
+      </div>
+    `).join("");
+
+    document.getElementById("editModal").classList.add("open");
+  }
+
+  function fillAllMonthsFromDec() {
+    const val = parseFloat(document.getElementById("mEdit_0").value) || 0;
+    for (let i = 1; i < 13; i++) {
+      document.getElementById(`mEdit_${i}`).value = val;
+    }
+  }
+
+  function saveItemModal() {
+    if (!editingTarget) return;
+    const { cat, idx } = editingTarget;
+    const item = appData[cat][idx];
+    item.name = document.getElementById("editItemName").value.trim() || item.name;
+    item.note = document.getElementById("editItemNote").value.trim();
+    for (let i = 0; i < 13; i++) {
+      item.values[i] = parseFloat(document.getElementById(`mEdit_${i}`).value) || 0;
+    }
+    closeModal("editModal");
+    saveData();
+    showToast("تم حفظ تعديلات البند");
+  }
+
+  function deleteCurrentItem() {
+    if (!editingTarget) return;
+    const { cat, idx } = editingTarget;
+    appData[cat].splice(idx, 1);
+    closeModal("editModal");
+    saveData();
+    showToast("تم حذف البند");
+  }
+
+  function openAddModal(cat) {
+    addingCategory = cat;
+    const titles = { income: "إضافة مصدر دخل جديد", expense: "إضافة بند مصاريف جديد", installment: "إضافة قسط جديد" };
+    document.getElementById("addModalTitle").textContent = titles[cat];
+    document.getElementById("newItemName").value = "";
+    document.getElementById("newItemNote").value = "";
+    document.getElementById("newItemDefaultVal").value = "0";
+    document.getElementById("addModal").classList.add("open");
+  }
+
+  function confirmAddItem() {
+    const name = document.getElementById("newItemName").value.trim();
+    if (!name) return showToast("اكتب اسم البند أولاً");
+    const note = document.getElementById("newItemNote").value.trim();
+    const val = parseFloat(document.getElementById("newItemDefaultVal").value) || 0;
+    const scope = document.getElementById("newItemApplyScope").value;
+
+    const values = Array(13).fill(0).map((_, i) => {
+      if (scope === "all") return val;
+      if (scope === "from_current" && i >= selectedMonthIdx) return val;
+      if (scope === "current" && i === selectedMonthIdx) return val;
+      return 0;
+    });
+
+    appData[addingCategory].push({
+      id: "item_" + Date.now(),
+      name,
+      note,
+      values
+    });
+
+    closeModal("addModal");
+    saveData();
+    showToast("تمت إضافة البند بنجاح");
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove("open");
+  }
+
+  // Export & Backup
+  function exportCSV() {
+    let rows = [["القسم", "البند", "ملاحظات", ...MONTHS, "الإجمالي"]];
+    const pushSection = (label, list) => {
+      list.forEach(item => {
+        const sum = item.values.reduce((a, b) => a + Number(b || 0), 0);
+        rows.push([label, item.name, item.note || "", ...item.values, sum]);
+      });
+    };
+    pushSection("الدخل", appData.income);
+    pushSection("المصاريف", appData.expense);
+    pushSection("الأقساط", appData.installment);
+
+    const csvContent = "﻿" + rows.map(r => r.map(c => `"${c}"`).join(",")).join("
+");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "متابعة_الدخل_والأقساط_2026_2027.csv";
+    a.click();
+  }
+
+  function exportJSON() {
+    const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "نسخة_احتياطية_الأقساط.json";
+    a.click();
+  }
+
+  function importJSON(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (parsed.income && parsed.installment) {
+          appData = parsed;
+          saveData();
+          showToast("تمت استعادة النسخة الاحتياطية بنجاح!");
+        } else {
+          showToast("ملف غير صالح");
+        }
+      } catch {
+        showToast("خطأ في قراءة الملف");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function resetDefaultData() {
+    if (confirm("هل أنت متأكد من استعادة بيانات ملف الإكسل الأصلي؟")) {
+      appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      saveData();
+      showToast("تمت استعادة البيانات الأصلية");
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
